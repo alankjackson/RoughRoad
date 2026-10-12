@@ -1,0 +1,43 @@
+---
+title: "Read Data"
+author: "Alan Jackson"
+format: html
+---
+
+##    Read in accelerometer data
+
+```{r setup}
+
+library(tidyverse)
+
+path <- "/home/ajackson/Dropbox/Rprojects/RoughRoad/"
+
+file <- "Portsmouth_Street-2026-08-20_19-28-35.zip"
+
+Accel <- read_csv(unzip(paste0(path, file), "Accelerometer.csv"))
+Location <- read_csv(unzip(paste0(path, file), "Location.csv"))
+
+
+```
+
+##      quick plot
+
+```{r}
+#| echo: false
+#| warning: false
+
+Accel |> 
+  ggplot(aes(y=z, x=seconds_elapsed)) +
+  geom_line()
+
+```
+
+
+
+
+
+
+
+
+
+
