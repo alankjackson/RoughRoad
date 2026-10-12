@@ -52,6 +52,14 @@ Location |>
   geom_histogram(binwidth=5) +
   labs(title="Bearing in degrees",
        subtitle="Zero degrees equals north")
+
+# what is speed?
+
+Location |> 
+  ggplot(aes(x=speed)) +
+  geom_histogram(binwidth=0.2) +
+  labs(title="Speed in m/s",
+       subtitle="Roughly double values for mph")
 ```
 
 ##    The map
@@ -61,15 +69,51 @@ Location |>
 #| warning: false
 
 points_data <- Location |> 
-  rename(id=speed, lat=latitude, lon=longitude) |> 
-  select(id, lat, lon) |> 
-  mutate(id=as.character(id))
+  mutate(speed=2.2369*speed) |> #   convert to mph
+  rename(lat=latitude, lon=longitude) |> 
+  mutate(id=as.character(speed)) |> 
+  select(id, speed, lat, lon)  
 
 leaflet(points_data) %>%
   addTiles() %>%
   addMarkers(lng = ~lon, lat = ~lat, popup = ~id) %>%
   addPolylines(lng = ~lon, lat = ~lat, color = "blue", weight = 3)
 
+pal <- colorNumeric(
+  palette = "YlOrRd", 
+  domain = points_data$speed
+)
+
+leaflet() %>%
+  addTiles() %>%
+  # Draw the path connecting the points
+  addPolylines(
+    data = points_data,
+    lng = ~lon, 
+    lat = ~lat, 
+    color = "grey",  # Kept grey so the colored points pop out
+    weight = 3
+  ) %>%
+  # Draw color-coded circle markers for the points
+  addCircleMarkers(
+    data = points_data,
+    lng = ~lon, 
+    lat = ~lat, 
+    radius = 8,
+    fillColor = ~pal(speed), # Use the color palette function
+    color = "black",         # Border color
+    weight = 1,              # Border thickness
+    fillOpacity = 0.9,
+    popup = ~paste0("<b>", id, "</b><br>Speed: ", speed, " mph") # Include speed in popup
+  ) %>%
+  # Add a legend to explain the colors
+  addLegend(
+    data = points_data,
+    pal = pal, 
+    values = ~speed, 
+    title = "Speed (mph)",
+    position = "bottomright"
+  )
 
 ```
 
