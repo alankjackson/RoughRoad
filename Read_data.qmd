@@ -9,6 +9,7 @@ format: html
 ```{r setup}
 
 library(tidyverse)
+library(leaflet)
 
 path <- "/home/ajackson/Dropbox/Rprojects/RoughRoad/"
 
@@ -20,7 +21,7 @@ Location <- read_csv(unzip(paste0(path, file), "Location.csv"))
 
 ```
 
-##      quick plot
+##      quick plots
 
 ```{r}
 #| echo: false
@@ -28,10 +29,49 @@ Location <- read_csv(unzip(paste0(path, file), "Location.csv"))
 
 Accel |> 
   ggplot(aes(y=z, x=seconds_elapsed)) +
-  geom_line()
+  geom_line()+
+  labs(title="Z-axis values")
 
+Accel |> 
+  ggplot(aes(x=z)) +
+  geom_histogram(binwidth=0.05) +
+  labs(title="Z-axis values")
+
+# what is interval for locations?
+
+Location |> 
+  mutate(Interval=seconds_elapsed - lag(seconds_elapsed)) |> 
+  ggplot(aes(x=Interval)) +
+  geom_histogram(binwidth=0.05) +
+  labs(title="Interval between locations in seconds")
+
+# what is bearing?
+
+Location |> 
+  ggplot(aes(x=bearing)) +
+  geom_histogram(binwidth=5) +
+  labs(title="Bearing in degrees",
+       subtitle="Zero degrees equals north")
 ```
 
+##    The map
+
+```{r}
+#| echo: false
+#| warning: false
+
+points_data <- Location |> 
+  rename(id=speed, lat=latitude, lon=longitude) |> 
+  select(id, lat, lon) |> 
+  mutate(id=as.character(id))
+
+leaflet(points_data) %>%
+  addTiles() %>%
+  addMarkers(lng = ~lon, lat = ~lat, popup = ~id) %>%
+  addPolylines(lng = ~lon, lat = ~lat, color = "blue", weight = 3)
+
+
+```
 
 
 
